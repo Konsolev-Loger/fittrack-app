@@ -1,0 +1,81 @@
+.wrapper{min-height:100dvh;background:var(--bg)}.diaryIntro{max-width:1200px;margin:0 auto;padding:48px 40px 0;display:flex;align-items:center;justify-content:space-between;gap:20px}.diaryIntro h1{font-size:38px;margin:12px 0}.diaryIntro p{font-size:13px;color:var(--muted)}.dateButton{white-space:nowrap}.mainContent{max-width:1200px;margin:0 auto;padding:35px 40px 70px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:26px;align-items:start}.mainContent>[role]{grid-column:1/-1}.workoutDisplay{min-width:0}.workoutDisplay>h2{font-size:20px;margin:0 0 18px}.workoutDisplay>button{font-size:12px;margin-bottom:16px}.emptyState{border:1px dashed var(--line);border-radius:10px;padding:50px 28px;text-align:center}.emptyState h3{font-size:22px;margin-bottom:12px}.emptyState p{color:var(--muted);font-size:13px}.exCard{background:var(--surface);border:1px solid var(--line);padding:23px;margin-bottom:12px;border-radius:10px;display:flex;align-items:flex-start;gap:14px}.compound{border-left:2px solid var(--accent)}.exInfo{flex:1;min-width:0}.exHeaderBlock{display:flex;justify-content:space-between;align-items:center;gap:15px}.exTitleBtn{padding:0;border:0;text-align:left;background:transparent}.exTitleBtn:hover{background:none;color:var(--accent)}.exTitleBtn h4{font-size:15px;font-weight:550}.exTitleBtn h4 span{display:block;color:var(--muted);font-size:11px;font-weight:400;margin-top:6px}.exDescription{color:var(--muted);font-size:12px;margin-top:10px;white-space:pre-wrap;overflow-wrap:anywhere}.tags{font-size:10px;color:var(--accent);margin-top:12px;line-height:1.8}.expandBtn{padding:7px;border:0;color:var(--muted)}.arrow{display:inline-block;font-size:9px;transition:transform .2s}.arrowExpanded{transform:rotate(90deg);color:var(--accent)}.deleteExBtn{padding:5px 8px;border:0;color:var(--muted);font-size:20px}.deleteExBtn:hover{color:var(--danger)}.setsCollapseWrapper{display:none}.showSets{display:block}.setsContainer{margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}.setsContainer h5{font-size:11px;color:var(--muted);font-weight:400;margin-bottom:12px}.setsList{display:flex;flex-wrap:wrap;gap:10px}.setRow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:7px;padding:8px}.setNumber{font-size:10px;color:var(--accent)}.setInputs{display:flex;align-items:center;gap:5px}.setInputs>span{min-width:0}.setInputs small{display:block;font-size:10px;max-width:90px}.setInput{width:66px;padding:8px 4px;text-align:center;font-size:12px}.setX{color:var(--muted);font-size:11px}.archiveAlert{color:var(--accent);font-size:12px;margin-bottom:18px}.formContainerLeft{min-width:0}@media(max-width:850px){.mainContent{grid-template-columns:280px minmax(0,1fr);gap:18px}.exCard{padding:16px}.diaryIntro h1{font-size:32px}}@media(max-width:700px){.diaryIntro{padding:30px 22px 0;align-items:start;flex-direction:column}.mainContent{padding:25px 22px 45px;grid-template-columns:1fr}.calendarSection{order:2}.workoutDisplay{order:1}.diaryIntro h1{font-size:30px}}
+/* Compact set table: consistent columns, quiet actions. */
+.setsHeading,.setRow{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 32px;gap:10px;align-items:center}
+.setsHeading{color:var(--muted);font-size:10px;padding:0 0 8px;text-align:center}
+.setsHeading>span:first-child{text-align:left}
+.setsList{display:flex;flex-direction:column;gap:0}
+.setRow{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:9px 0}
+.setNumber{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.setInputs{display:contents}
+.setInput{width:100%;height:36px;padding:6px;border-color:transparent;background:var(--bg);border-radius:5px;font-size:13px;font-variant-numeric:tabular-nums}
+.setInput:hover{border-color:var(--line)}
+.setInputs small{max-width:none}
+.deleteSetBtn{width:32px;height:32px;padding:0;border:0;border-radius:5px;font-size:20px;line-height:1;color:var(--muted);background:transparent}
+.deleteSetBtn:hover{color:var(--danger);background:var(--danger-soft)}
+.addSetBtn{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;margin-top:13px;padding:7px 0;border:0;border-radius:4px;color:var(--accent);font-size:12px;background:transparent}
+.addSetBtn>span{font-size:18px;line-height:1}
+.addSetBtn:hover{background:transparent;color:var(--accent-hover)}
+.mainContent{display:flex;flex-direction:column;gap:22px;max-width:1120px}
+.diaryIntro{max-width:1120px}
+.mainContent>*{width:100%}
+.weekStrip{padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.weekToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;color:var(--muted);font-size:13px}
+.weekToolbar>div{display:flex;gap:6px}
+.weekToolbar button{padding:8px 12px;font-size:12px;border-color:transparent}
+.weekDays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}
+.weekDays button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0 8px;background:var(--bg);border-color:transparent}
+.weekDays span{font-size:12px;color:var(--muted);text-transform:capitalize}
+.weekDays strong{font-size:21px;font-weight:500}
+.weekDays i{height:4px;width:4px;border-radius:50%;background:transparent}
+.weekDays [aria-current=date] i{background:var(--accent)}
+.weekDays [aria-pressed=true]{background:var(--accent);color:var(--bg)}
+.weekDays [aria-pressed=true] span{color:var(--selected-detail)}
+.weekDays [aria-pressed=true] i{background:var(--bg)}
+.calendarSection{order:0;border:1px dashed var(--line);border-radius:10px;padding:0 22px}
+.calendarSection summary{cursor:pointer;padding:17px 0;font-size:14px;color:var(--accent)}
+.calendarSection[open]{border-style:solid;padding-bottom:20px}
+.formContainerLeft{max-width:580px;margin:0 auto}
+.workoutDisplay{order:0}
+.exCard{position:relative;padding:24px}
+.exInfo{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);column-gap:30px;align-items:start}
+.exHeaderBlock,.exDescription,.tags{grid-column:1}
+.setsCollapseWrapper{grid-column:2;grid-row:1 / span 4}
+.setsContainer{margin:0;padding:0;border:0}
+.exRightSide{position:absolute;right:10px;top:10px}
+.exInfo{padding-right:18px}
+.exTitleBtn h4{font-size:17px}
+.exTitleBtn h4 span{font-size:12px;margin-top:8px}
+@media(max-width:700px){.weekStrip{padding:16px 12px}.weekDays{gap:4px}.weekToolbar{font-size:12px}.weekToolbar button{padding:8px}.weekDays strong{font-size:18px}.exInfo{display:block;padding-right:12px}.setsContainer{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}.exCard{padding:18px}.calendarSection{order:0}.workoutDisplay{order:0}}
+@media(max-width:380px){.exCard{padding:12px;gap:6px}.setsHeading,.setRow{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr) 28px;gap:6px}.deleteSetBtn{width:28px}}
+.weekStrip{max-width:620px;padding:12px 14px;border-radius:9px}
+.weekToolbar{margin-bottom:8px;font-size:11px}
+.weekToolbar button{padding:4px 9px;font-size:11px}
+.weekDays{gap:5px}
+.weekDays button{gap:3px;padding:6px 0 5px;border-radius:6px}
+.weekDays span{font-size:10px}
+.weekDays strong{font-size:16px}
+.weekDays [aria-current=date]{border-color:var(--muted)}
+.weekDays [aria-current=date] i{background:transparent}
+.weekDays [data-workout=true]{background:var(--accent-soft);border-color:var(--accent-border)}
+.weekDays [data-workout=true] i{background:var(--accent)}
+.weekDays [aria-pressed=true]{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.weekDays [aria-pressed=true][data-workout=true] i{background:var(--bg)}
+.newExercise{width:auto;align-self:flex-start;color:var(--accent);font-size:13px}
+.exerciseModal{width:min(540px,calc(100% - 28px));max-height:90dvh;padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text)}
+.exerciseModal::backdrop{background:var(--overlay);backdrop-filter:blur(4px)}
+.modalToolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;font-size:12px;color:var(--muted);margin-bottom:14px}
+.modalToolbar button{padding:0;width:32px;height:32px;font-size:23px;border:0}
+.exerciseModal>div:last-child{padding:0;border:0;background:transparent}
+
+.exRightSide{display:flex;gap:3px;align-items:center}
+.exInfo{padding-right:58px}
+.collapseButton{width:28px;height:28px;padding:0;border:0;color:var(--accent);font-size:22px;display:grid;place-items:center}
+
+.collapseButton,.collapseButton:hover,.collapseButton:active{background:transparent;border:0}
+.collapseButton{color:var(--muted)}
+.collapseButton:hover{color:var(--accent)}
+.collapseButton svg{display:block;transition:transform .4s ease,color .2s}
+.collapseButton[aria-expanded=false] svg{transform:rotate(-90deg)}
+.setsCollapseWrapper{display:grid;grid-template-rows:1fr;align-self:start;opacity:1;transition:grid-template-rows .5s ease-in-out,opacity .5s ease-in-out}
+.setsCollapseWrapper[data-collapsed=true]{grid-template-rows:0fr;opacity:0}
+.setsClip{min-height:0;overflow:hidden;padding:0 5px;margin:0 -5px}

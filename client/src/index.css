@@ -1,0 +1,25 @@
+:root{font-family:Inter,"Segoe UI",Arial,sans-serif;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}button,a{transition:background .18s,color .18s,border-color .18s}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}a{color:inherit;text-decoration:none}button{color:var(--text);border:1px solid var(--line);background:transparent;border-radius:8px;padding:10px 16px}button:hover{border-color:var(--hover-border);background:var(--hover)}input,textarea,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);min-width:0}input::placeholder,textarea::placeholder{color:var(--placeholder)}input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}:focus-visible{outline:2px solid var(--accent);outline-offset:4px}h1,h2,h3,h4,h5,p{margin:0}h1,h2,h3{font-weight:550;letter-spacing:-.045em}p{line-height:1.7}button.primary,.primary{display:inline-flex;align-items:center;justify-content:center;gap:24px;background:var(--accent);border:1px solid var(--accent);color:var(--on-accent);font-weight:650;padding:15px 22px;border-radius:8px}.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}.shell{max-width:1200px;margin:0 auto;padding:0 40px}.brand{display:inline-flex;align-items:center;gap:10px;font-size:22px;letter-spacing:-1px;font-weight:750}.brand em{font-style:normal;font-weight:400;color:var(--brand-secondary)}.brand-symbol{display:block;flex:none;width:34px;height:34px;color:var(--accent);margin-right:1px}.eyebrow{text-transform:uppercase;letter-spacing:2.2px;font-size:11px;font-weight:650;color:var(--accent)}.muted{color:var(--muted)}[role=alert]{color:var(--danger);font-size:13px;line-height:1.5}.loading-screen{min-height:100dvh;display:grid;place-content:center;gap:24px;text-align:center}.site-footer{border-top:1px solid var(--line);padding:30px 0}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;color:var(--muted);font-size:12px}.site-footer .brand{font-size:18px;color:var(--text)}@media(max-width:650px){.shell{padding:0 22px}.footer-inner{flex-wrap:wrap}.footer-inner>span:last-child{width:100%}.brand{font-size:20px}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Equal side columns keep the download action at the true center. */
+.site-footer .footer-inner{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:24px}
+.footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+.site-footer .footer-download{justify-self:center;padding:14px 22px;font-size:14px;white-space:nowrap;color:var(--on-accent)}
+.footer-copyright{justify-self:end;text-align:right}
+@media(max-width:650px){.site-footer .footer-inner{grid-template-columns:1fr;gap:24px;text-align:center}.footer-brand{align-items:center}.footer-copyright{justify-self:center}.site-footer .footer-download{grid-row:1}}
+html{scrollbar-gutter:stable}
+dialog[open]{animation:dialog-appear .2s ease-out}
+dialog[open]::backdrop{animation:backdrop-appear .2s ease-out}
+@keyframes dialog-appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes backdrop-appear{from{opacity:0}to{opacity:1}}
+:root{--radius-control:8px;--radius-panel:12px}
+button:disabled{cursor:not-allowed}
+button:not(:disabled):active{filter:brightness(.94)}
+button.primary,.primary{min-height:44px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+input[aria-invalid=true]{border-color:var(--danger)}
+.notice-error{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--danger-border);border-radius:var(--radius-control);background:var(--danger-soft)}
+.notice-error button{font-size:12px;white-space:nowrap}
+.save-hint{font-size:12px;color:var(--muted);margin-bottom:14px}
+.set-field{display:flex;flex-direction:column;min-width:0}
+.set-feedback{min-height:14px;line-height:1.4;margin-top:3px;color:var(--muted)}
+.set-feedback[role=alert]{color:var(--danger)}
+@media(max-width:600px){.notice-error{align-items:flex-start;flex-direction:column}input,select,textarea{font-size:16px!important}}

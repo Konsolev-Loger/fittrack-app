@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String     @id @default(uuid())
+  email      String     @unique
+  name       String?
+  password   String
+  emailVerifiedAt DateTime?
+  emailTokens EmailToken[]
+  sessions Session[]
+  weightGoal WeightGoal?
+  categories Category[] // Кастомные категории пользователя
+  workouts   Workout[] // Тренировочные дни пользователя
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String // Название (например, "Плечи")
+  isCustom  Boolean    @default(false) // Создано пользователем или дефолтная
+  userId    String? // Null для общих дефолтных категорий
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises Exercise[]
+  createdAt DateTime   @default(now())
+}
+
+model Workout {
+  id         String     @id @default(uuid())
+  date       DateTime @db.Date // Конкретная дата тренировки (день)
+  weekNumber Int // Номер недели в месяце (для календаря)
+  month      Int // Месяц (1-12)
+  year       Int // Год
+  isArchived Boolean    @default(false) // Архив тренировки
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises  Exercise[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([userId, date]) // У юзера может быть только одна тренировка в конкретный день
+}
+
+model Exercise {
+  id          String   @id @default(uuid())
+  name        String // Название упражнения
+  description String? // Описание
+  isCompound  Boolean // Многосуставное (True) или изоляция (False)
+  isFailure   Boolean  @default(false) // Флаг: отказ
+  isDropSet   Boolean  @default(false) // Флаг: дроп-сет
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  workoutId   String
+  workout     Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  // Связь один-ко-многим с подходами
+  sets WorkoutSet[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutSet {
+  id        String @id @default(uuid())
+  setNumber Int // Номер подхода (1, 2, 3...)
+  weight    Float  @default(0) // Вес снаряда
+  repsCount Int    @default(0) // Количество повторений
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ @@index([userId])
+ @@index([expiresAt])
+}
+
+model WeightGoal {
+ userId String @id
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ startWeight Float
+ currentWeight Float
+ targetWeight Float
+ updatedAt DateTime @updatedAt
+}
+
+model EmailToken {
+ id String @id @default(uuid())
+ tokenHash String @unique
+ purpose String
+ userId String
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ @@index([userId, purpose])
+ @@index([expiresAt])
+}

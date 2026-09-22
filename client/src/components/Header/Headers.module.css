@@ -1,0 +1,4 @@
+.header{border-bottom:1px solid var(--line)}.inner{max-width:1200px;padding:25px 40px;margin:auto;display:flex;align-items:center;gap:30px}.section{border-left:1px solid var(--line);padding-left:30px;font-size:12px;color:var(--muted)}.userBlock{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:12px}.userBlock button{font-size:12px}.username{color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:750px){.inner{padding:22px;gap:14px;flex-wrap:wrap}.section{display:none}.userBlock{gap:10px}.username{display:none}.userBlock button{padding:8px 10px}}
+.inner{max-width:1120px}
+.userBlock>a{display:inline-flex;align-items:center;min-height:40px;padding:0 8px;border-radius:8px}
+.userBlock>a:hover{color:var(--accent);background:var(--subtle)}
