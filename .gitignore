@@ -16,3 +16,8 @@
 .DS_Store
 Thumbs.db
 **/.mail-preview/
+
+# Local project notes
+/DEPLOYMENT.md
+/EMAIL-SETUP.md
+/SECURITY-REVIEW.md
