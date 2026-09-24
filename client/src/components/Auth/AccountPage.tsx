@@ -42,9 +42,9 @@ export function AccountPage({ mode }: { mode: Mode }) {
   } catch (e) { setError(getErrorMessage(e)); }
   finally { setBusy(false); }
  };
- return <main className="account-page"><Link to="/" aria-label="FIT Track — главная"><Brand/></Link>
+ return <main className="account-page"><Link to="/" aria-label="Setly — главная"><Brand/></Link>
   <section className="account-card"><span className="eyebrow">Твой дневник рядом</span><h1>{title}</h1>
-   <p className="muted">{mode === "check-email" ? "Открой письмо от FIT Track и подтверди адрес. Если письма нет, проверь «Спам» или запроси его ещё раз." : mode === "forgot-password" ? "Укажи email своего аккаунта. Мы отправим ссылку для смены пароля." : mode === "verify-email" ? "Нажми кнопку ниже, чтобы завершить подтверждение и перейти ко входу." : "После смены пароля потребуется заново войти на всех устройствах."}</p>
+   <p className="muted">{mode === "check-email" ? "Открой письмо от Setly и подтверди адрес. Если письма нет, проверь «Спам» или запроси его ещё раз." : mode === "forgot-password" ? "Укажи email своего аккаунта. Мы отправим ссылку для смены пароля." : mode === "verify-email" ? "Нажми кнопку ниже, чтобы завершить подтверждение и перейти ко входу." : "После смены пароля потребуется заново войти на всех устройствах."}</p>
    {!requestMail && !validToken && !complete ? <p role="alert">В ссылке нет действительного кода. Запроси новое письмо.</p> : !complete && <form onSubmit={submit}>
     {requestMail && <label>Email<input required type="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"/></label>}
     {mode === "reset-password" && <><label>Новый пароль<input required type="password" autoComplete="new-password" minLength={8} maxLength={35} value={password} onChange={e => setPassword(e.target.value)}/></label><p className="account-hint muted">8–35 символов: заглавная и строчная латинские буквы, цифра и спецсимвол.</p><label>Повтори пароль<input required type="password" autoComplete="new-password" maxLength={35} value={confirmation} onChange={e => setConfirmation(e.target.value)}/></label></>}

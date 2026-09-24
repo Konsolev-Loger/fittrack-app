@@ -1,4 +1,4 @@
-# FIT Track
+# Setly
 
 React 19 + Vite, Express 5, PostgreSQL, Prisma 7.10. Node.js 24.
 Сайт: главная и автодемонстрация, личный дневник, профиль с весом и целью.
@@ -29,11 +29,13 @@ backup провайдера и проверенное восстановлени
 
 ## Публикация
 
-Инструкция: [DEPLOYMENT.md](DEPLOYMENT.md).
-Результаты проверки и ограничения: [SECURITY-REVIEW.md](SECURITY-REVIEW.md).
-Фронтенд готовится для Vercel, API — отдельного Node-хостинга.
-В client/vercel.json пока адрес-заглушка: сначала настроить реальный API.
-Автоматическая проверка намеренно запрещает публикацию с заглушкой.
+Для VPS: workflow **Build VPS bundle** собирает готовые Docker-образы вне сервера.
+Порядок установки и обновлений описан в [deploy/README.md](deploy/README.md).
+`compose.yaml` запускает PostgreSQL, API и Caddy с HTTPS на одном домене.
+Секреты генерируются на VPS и не входят в GitHub или архив сборки.
+
+Альтернативная конфигурация Vercel сохранена отдельно. В `client/vercel.json`
+пока адрес-заглушка API: для Vercel его нужно заменить; на запуск VPS это не влияет.
 
 ## Данные
 

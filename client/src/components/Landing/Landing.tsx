@@ -4,23 +4,23 @@ import { useAuthStore } from "../../store/authStore";
 import "./Landing.css";
 import "./Sequence.css";
 import { DemoDiary } from "./DemoDiary";
+import { useScrollReveal } from "./useScrollReveal";
 export function Brand() {
 	return (
 		<span className="brand">
-			<svg className="brand-symbol" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <path d="M10 32V16a8 8 0 0 1 8-8h11M10 23h14" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="30" cy="23" r="3" fill="currentColor"/>
+			<svg className="brand-symbol" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <g fill="var(--accent)"><path d="M24 2 31 6 11 18 14 20 34 8 44 14 44 23 24 35 17 31 37 19 34 17 14 29 4 23 4 14Z"/><path d="M4 27 24 39 44 27 44 35 24 47 4 35Z"/></g>
             </svg>
-			FIT <em>Track</em>
+			Setly
 		</span>
 	);
 }
 export function Footer() {
 	return (
-		<footer className="site-footer">
+		<footer className="site-footer" data-reveal>
 			<div className="shell footer-inner">
 				<div className="footer-brand">
-					<Link to="/" aria-label="FIT Track — главная">
+					<Link to="/" aria-label="Setly — главная">
 						<Brand />
 					</Link>
 					<span>Дневник твоих тренировок.</span>
@@ -28,7 +28,7 @@ export function Footer() {
 				<Link className="footer-download primary" to="/download">
 					Скачать приложение <span aria-hidden="true">↓</span>
 				</Link>
-				<span className="footer-copyright">© {new Date().getFullYear()} FIT Track</span>
+				<span className="footer-copyright">© {new Date().getFullYear()} Setly</span>
 			</div>
 		</footer>
 	);
@@ -95,7 +95,7 @@ function SectionTransition({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="shell section-divider">
+		<div className="shell section-divider" data-reveal>
 			<span>
 				{number} / {label}
 			</span>
@@ -106,12 +106,13 @@ function SectionTransition({
 	);
 }
 export function Landing() {
+	const revealRoot = useScrollReveal();
 	const authenticated = useAuthStore((s) => s.isAuthenticated);
 	const target = authenticated ? "/diary" : "/login";
 	return (
-		<div className="landing-sequence">
+		<div className="landing-sequence" ref={revealRoot}>
 			<header className="landing-header shell">
-				<Link to="/" aria-label="FIT Track — главная">
+				<Link to="/" aria-label="Setly — главная">
 					<Brand />
 				</Link>
 				<nav aria-label="Основная навигация"><ThemeToggle/>
@@ -152,7 +153,7 @@ export function Landing() {
 				</section>
 				<section id="demo" className="demo-screen">
 					<div className="shell demo-content">
-						<div className="demo-intro">
+						<div className="demo-intro" data-reveal>
 							<div>
 								<div className="eyebrow">Почувствуй, как это работает</div>
 								<h2>
@@ -168,7 +169,7 @@ export function Landing() {
 								<br />и не попадут в личный дневник.
 							</p>
 						</div>
-						<DemoDiary />
+						<div data-reveal><DemoDiary /></div>
 					</div>
 					<SectionTransition number="02" label="ВОЗМОЖНОСТИ" target="#features">
 						Всё начинается с простого
@@ -176,7 +177,7 @@ export function Landing() {
 				</section>
 				<section id="features" className="features-screen">
 					<div className="features shell">
-						<div className="feature-intro">
+						<div className="feature-intro" data-reveal>
 							<h2>
 								Всё нужное.
 								<br />
@@ -190,7 +191,7 @@ export function Landing() {
 						</div>
 						<div className="feature-grid">
 							{benefits.map(([number, title, description, type]) => (
-								<article className="feature-card" key={number}>
+								<article className="feature-card" key={number} data-reveal>
 									<div className="feature-card-top">
 										<FeatureIcon type={type} />
 										<span>{number}</span>
@@ -200,7 +201,7 @@ export function Landing() {
 								</article>
 							))}
 						</div>
-						<div className="closing">
+						<div className="closing" data-reveal>
 							<div>
 								<div className="eyebrow">Следующий шаг — твой</div>
 								<h2>Начни с одной тренировки.</h2>

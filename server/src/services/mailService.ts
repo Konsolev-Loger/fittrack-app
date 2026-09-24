@@ -21,8 +21,8 @@ export async function sendAccountMail(email: string, purpose: "verify" | "reset"
  const url = new URL(purpose === "verify" ? "/verify-email" : "/reset-password", process.env.APP_URL || "http://127.0.0.1:5173");
  // Fragment tokens do not reach web server access logs or Referer headers.
  url.hash = new URLSearchParams({ token }).toString();
- const subject = purpose === "verify" ? "Подтверди email — FIT Track" : "Восстановление пароля — FIT Track";
- const text = `${subject}\n\n${purpose === "verify" ? "Подтверди адрес почты, чтобы открыть дневник. Ссылка действует 24 часа." : "Задай новый пароль. Ссылка действует 30 минут."}\n\n${url.toString()}\n\nЕсли ты не отправлял запрос, просто проигнорируй это письмо.\nFIT Track`;
+ const subject = purpose === "verify" ? "Подтверди email — Setly" : "Восстановление пароля — Setly";
+ const text = `${subject}\n\n${purpose === "verify" ? "Подтверди адрес почты, чтобы открыть дневник. Ссылка действует 24 часа." : "Задай новый пароль. Ссылка действует 30 минут."}\n\n${url.toString()}\n\nЕсли ты не отправлял запрос, просто проигнорируй это письмо.\nSetly`;
  if (mailMode() === "preview") {
   if (process.env.NODE_ENV === "production") throw new Error("Mail preview is disabled in production");
   const directory = process.env.MAIL_PREVIEW_DIR || path.resolve(".mail-preview");

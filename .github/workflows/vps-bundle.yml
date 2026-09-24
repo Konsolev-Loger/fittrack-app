@@ -1,0 +1,48 @@
+name: Build VPS bundle
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          docker build --target runtime -t setly-api:$GITHUB_SHA server
+          docker build --target migrate -t setly-migrate:$GITHUB_SHA server
+          docker build -t setly-web:$GITHUB_SHA client
+      - name: Check clean database, migrations and web routing
+        env:
+          SETLY_TAG: ${{ github.sha }}
+          DOMAIN: localhost
+          SITE_ADDRESS: http://localhost
+          POSTGRES_PASSWORD: ci_only_ephemeral_database_password
+          ACCESS_TOKEN_SECRET: ci_only_access_secret_not_for_production_123456789
+          REFRESH_TOKEN_SECRET: ci_only_refresh_secret_not_for_production_987654321
+        run: |
+          docker compose config --quiet
+          docker compose up -d --wait db
+          docker compose run --rm migrate
+          docker compose run --rm migrate
+          docker compose up -d --wait api web
+          curl --fail --retry 10 --retry-connrefused --retry-delay 2 http://localhost/readyz
+          curl --fail http://localhost/diary | grep 'id="root"'
+          test "$(curl -s -o /tmp/missing-api -w '%{http_code}' http://localhost/api/not-found)" = 404
+          grep '404' /tmp/missing-api
+          test "$(docker compose exec -T db psql -U setly -d setly -Atc 'SELECT count(*) FROM "Category" WHERE "userId" IS NULL')" = 6
+      - name: Create bundle
+        run: |
+          mkdir -p bundle
+          docker save setly-api:$GITHUB_SHA setly-migrate:$GITHUB_SHA setly-web:$GITHUB_SHA | gzip > bundle/images.tar.gz
+          cp compose.yaml bundle/
+          cp -r deploy bundle/
+          printf '%s\n' "$GITHUB_SHA" > bundle/RELEASE_TAG
+      - uses: actions/upload-artifact@v4
+        with:
+          name: setly-vps-${{ github.sha }}
+          path: bundle/
+          retention-days: 7
+          compression-level: 0

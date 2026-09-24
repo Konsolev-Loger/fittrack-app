@@ -1,0 +1,92 @@
+name: setly
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: setly
+      POSTGRES_USER: setly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run deploy/init-env.sh first}
+    volumes:
+      - database:/var/lib/postgresql
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U setly -d setly"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+  migrate:
+    image: setly-migrate:${SETLY_TAG:?Set SETLY_TAG in .env}
+    profiles: [tools]
+    environment:
+      DATABASE_URL: postgresql://setly:${POSTGRES_PASSWORD}@db:5432/setly
+    networks: [database]
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  api:
+    image: setly-api:${SETLY_TAG:?Set SETLY_TAG in .env}
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://setly:${POSTGRES_PASSWORD}@db:5432/setly
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?Run deploy/init-env.sh first}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?Run deploy/init-env.sh first}
+      FRONTEND_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env}
+      APP_URL: https://${DOMAIN}
+      TRUST_PROXY_HOPS: 1
+      EMAIL_AUTH_ENABLED: "false"
+      NODE_OPTIONS: --max-old-space-size=384
+    networks: [database, web]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+
+  web:
+    image: setly-web:${SETLY_TAG:?Set SETLY_TAG in .env}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+      SITE_ADDRESS: ${SITE_ADDRESS:-${DOMAIN}}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certificates:/data
+      - caddy_config:/config
+    networks: [web]
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logging
+
+networks:
+  database:
+    internal: true
+  web:
+
+volumes:
+  database:
+  certificates:
+  caddy_config:

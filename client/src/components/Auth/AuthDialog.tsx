@@ -18,7 +18,7 @@ export function AuthDialog({mode}:{mode:"login"|"register"}){
   return()=>{dialog?.close();document.body.style.overflow=overflow;previous?.focus();};
  },[]);
  const close=()=>{if(!busy)navigate("/");};
- return <dialog ref={ref} className="auth-dialog" aria-label={mode==="login"?"Вход в FIT Track":"Регистрация в FIT Track"} onCancel={event=>{event.preventDefault();close();}} onClick={event=>{if(event.target===event.currentTarget){const r=event.currentTarget.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}}}>
+ return <dialog ref={ref} className="auth-dialog" aria-label={mode==="login"?"Вход в Setly":"Регистрация в Setly"} onCancel={event=>{event.preventDefault();close();}} onClick={event=>{if(event.target===event.currentTarget){const r=event.currentTarget.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}}}>
  <button type="button" className="auth-close" aria-label="Закрыть" disabled={busy} onClick={close}>×</button><Brand/>
  <div className="auth-tabs"><button disabled={busy} aria-pressed={mode==="login"} onClick={()=>navigate("/login",{replace:true})}>Вход</button><button disabled={busy} aria-pressed={mode==="register"} onClick={()=>navigate("/register",{replace:true})}>Регистрация</button></div>
  {mode==="login"?<LoginForm/>:<RegisterForm/>}<p className="auth-footnote">Твой дневник. Твой темп. Твой прогресс.</p>
