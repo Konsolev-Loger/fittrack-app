@@ -15,19 +15,23 @@ export function Brand() {
 		</span>
 	);
 }
-export function Footer() {
+function Arrow({ direction = "diagonal" }: { direction?: "diagonal" | "up" | "down" }) {
+ return <svg className="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={direction === "up" ? "M12 19V5m-6 6 6-6 6 6" : direction === "down" ? "M12 5v14m-6-6 6 6 6-6" : "M6 18 18 6M6 6h12v12"}/></svg>;
+}
+export function Footer({ showDownload = true }: { showDownload?: boolean }) {
 	return (
-		<footer className="site-footer" data-reveal>
+		<footer className="site-footer" data-compact={!showDownload}>
 			<div className="shell footer-inner">
 				<div className="footer-brand">
 					<Link to="/" aria-label="Setly — главная">
 						<Brand />
 					</Link>
 					<span>Дневник твоих тренировок.</span>
+                        <a className="footer-contact" href="https://t.me/Leopard_Lvovich" target="_blank" rel="noopener noreferrer">По всем вопросам — @Leopard_Lvovich</a>
 				</div>
-				<Link className="footer-download primary" to="/download">
-					Скачать приложение <span aria-hidden="true">↓</span>
-				</Link>
+				{showDownload && <Link className="footer-download primary" to="/download">
+					Скачать приложение <Arrow direction="down" />
+				</Link>}
 				<span className="footer-copyright">© {new Date().getFullYear()} Setly</span>
 			</div>
 		</footer>
@@ -49,7 +53,7 @@ const benefits = [
 	[
 		"03",
 		"Твой набор упражнений",
-		"Выбирай группы мышц, добавляй свои упражнения и заметки. Дневник подстраивается под твою программу.",
+		"Создавай тренировки, добавляй упражнения, кардио и заметки. Дневник подстраивается под твою программу.",
 		"exercise",
 	],
 	[
@@ -100,7 +104,7 @@ function SectionTransition({
 				{number} / {label}
 			</span>
 			<a href={target}>
-				{children} <span aria-hidden="true">↓</span>
+				{children} <Arrow direction="down" />
 			</a>
 		</div>
 	);
@@ -108,7 +112,7 @@ function SectionTransition({
 export function Landing() {
 	const revealRoot = useScrollReveal();
 	const authenticated = useAuthStore((s) => s.isAuthenticated);
-	const target = authenticated ? "/diary" : "/login";
+	const target = authenticated ? "/diary" : "/register";
 	return (
 		<div className="landing-sequence" ref={revealRoot}>
 			<header className="landing-header shell">
@@ -117,14 +121,14 @@ export function Landing() {
 				</Link>
 				<nav aria-label="Основная навигация"><ThemeToggle/>
 					<a className="about-link" href="#demo">
-						Попробовать
+						Демонстрация
 					</a>
 					<a className="about-link" href="#features">
 						Возможности
 					</a>
-					{!authenticated && <Link to="/login">Войти</Link>}
-					<Link className="header-cta" to={target}>
-						К дневнику <span aria-hidden="true">↗</span>
+					{!authenticated && <Link className="desktop-login" to="/login">Войти</Link>}
+					<Link className="header-cta" to={target} state={{ tryDiary: !authenticated }}>
+						{authenticated ? "К дневнику" : "Попробовать"} <Arrow />
 					</Link>
 				</nav>
 			</header>
@@ -206,15 +210,12 @@ export function Landing() {
 								<div className="eyebrow">Следующий шаг — твой</div>
 								<h2>Начни с одной тренировки.</h2>
 							</div>
-							<Link className="primary" to={target}>
-								Открыть дневник <span aria-hidden="true">↗</span>
-							</Link>
+
 						</div>
 					</div>
 					<div className="shell section-divider last-divider">
-						<span>03 / ТВОЙ СЛЕДУЮЩИЙ ШАГ</span>
 						<a href="#intro">
-							К началу <span aria-hidden="true">↑</span>
+							К началу <Arrow direction="up" />
 						</a>
 					</div>
 				</section>

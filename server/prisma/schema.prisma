@@ -17,6 +17,7 @@ model User {
   emailTokens EmailToken[]
   sessions Session[]
   weightGoal WeightGoal?
+  notes PersonalNote[]
   categories Category[] // Кастомные категории пользователя
   workouts   Workout[] // Тренировочные дни пользователя
   createdAt  DateTime   @default(now())
@@ -34,6 +35,7 @@ model Category {
 }
 
 model Workout {
+  name String?
   id         String     @id @default(uuid())
   date       DateTime @db.Date // Конкретная дата тренировки (день)
   weekNumber Int // Номер недели в месяце (для календаря)
@@ -46,13 +48,15 @@ model Workout {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  @@unique([userId, date]) // У юзера может быть только одна тренировка в конкретный день
+  @@index([userId, date]) // Несколько тренировок пользователя за день
 }
 
 model Exercise {
   id          String   @id @default(uuid())
   name        String // Название упражнения
   description String? // Описание
+  distanceKm Float?
+  durationMinutes Int? // Для кардио и спорта вместо подходов
   isCompound  Boolean // Многосуставное (True) или изоляция (False)
   isFailure   Boolean  @default(false) // Флаг: отказ
   isDropSet   Boolean  @default(false) // Флаг: дроп-сет
@@ -109,4 +113,14 @@ model EmailToken {
  createdAt DateTime @default(now())
  @@index([userId, purpose])
  @@index([expiresAt])
+}
+
+model PersonalNote {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ content String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId,updatedAt])
 }

@@ -35,7 +35,6 @@ export const LoginForm = () => {
 		try {
 			await login(data);
 			reset(); // Очищаем форму только в случае успешного входа
-			navigate("/diary");
 		} catch {
             // The store provides a safe user-facing error; never log credentials.
 		}
@@ -44,7 +43,7 @@ export const LoginForm = () => {
 		<div className={styles.loginContainer}>
 			<div className={styles.mainCountainer}>
 				<form onSubmit={handleSubmit(onSubmit)} className={styles.loginForm}>
-					<h2>С возвращением.</h2>
+					<h2>Вход</h2>
 
 					{/* ===== Email ===== */}
 					<div className={styles.inputGroup}>
@@ -90,12 +89,7 @@ export const LoginForm = () => {
 						{isLoading ? "Вход..." : "Войти"}
 					</button>
 
-					<div className={styles.loginLink}>
-						<span>Нет аккаунта?</span>
-						<button type="button" disabled={isLoading} onClick={() => navigate("/register", { replace: true })} className={styles.linkButton}>
-							Зарегистрироваться
-						</button>
-					</div>
+
 				</form>
 
 			</div>

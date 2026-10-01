@@ -6,3 +6,7 @@
 .profile-header nav a{display:inline-flex;align-items:center;min-height:40px}
 .category-line button{min-height:36px;font-size:12px}
 @media(max-width:480px){.profile-header{flex-wrap:wrap}.profile-header nav{margin-left:auto}}
+
+.weight-caption{margin-top:20px}
+
+.notes-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.notes-heading button{font-size:12px}.notes-list{list-style:none;padding:0;margin:20px 0 0}.notes-list li{border-top:1px solid var(--line);padding:18px 0}.notes-list li>p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.note-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}.note-actions small{margin-right:auto}.note-actions button{font-size:12px;padding:6px 8px}.note-editor{margin-top:18px;animation:dialog-appear .2s ease-out}.note-editor textarea{min-height:130px;resize:vertical}.note-editor>div{display:flex;gap:10px;margin-top:14px}.note-editor button{font-size:13px}

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useWorkoutStore } from "../../store/workoutStore";
+import { useAuthStore } from "../../store/authStore";
+import { readCollapsedExercises, saveCollapsedExercises } from "../../utils/collapsedExercises";
 import { dateKey } from "../../utils/dates";
 import { CalendarModal } from "../CalendarModal/CalendarModal"; // Импортируем модалку
-import { Header } from "../Header/Headers";
 import { Footer } from "../Landing/Landing";
+import { Header } from "../Header/Headers";
 import { SetInput } from "../SetInput/SetInput";
+import { TrainingModal } from "./TrainingModal";
 import { ExerciseModal } from "./ExerciseModal";
 import styles from "./MainPages.module.css";
 import { WeekStrip } from "./WeekStrip";
@@ -17,6 +20,7 @@ export const MainPage = () => {
 		fetchCategories,
 		deleteExercise,
 		updateSetData,
+        updateDuration, updateDistance, deleteEmptyWorkout,
 		changeSets,
 		isSaving,
 		isLoading,
@@ -30,9 +34,12 @@ export const MainPage = () => {
 		fetchCategories();
 	}, [fetchCategories, fetchMonthlyData, selectedDate]);
 
-	const [collapsed, setCollapsed] = useState<string[]>([]);
-	const [addingExercise, setAddingExercise] = useState(false);
-	const currentWorkout = monthlyWorkouts.find((w) => w.date === dateKey(selectedDate));
+	const userId = useAuthStore(state=>state.user?.id || "");
+ const [collapsed, setCollapsed] = useState<string[]>(()=>readCollapsedExercises(userId));
+ useEffect(()=>{if(userId)saveCollapsedExercises(userId,collapsed);},[userId,collapsed]);
+	const [addingExercise, setAddingExercise] = useState<string | null>(null);
+ const [addingWorkout, setAddingWorkout] = useState(false);
+	const dayWorkouts = monthlyWorkouts.filter((w) => w.date === dateKey(selectedDate));
 
 	return (
 		<div className={styles.wrapper}>
@@ -41,9 +48,9 @@ export const MainPage = () => {
 			<CalendarModal />
 			<div className={styles.diaryIntro}>
 				<div>
-					<div className="eyebrow">Твой темп. Твой прогресс.</div>
-					<h1>Дневник тренировок</h1>
-					<p>Записывай сегодняшний результат. Создавай завтрашний.</p>
+
+					<h1>Дневник</h1>
+
 				</div>
 				<button type="button" className={styles.dateButton} onClick={() => useWorkoutStore.getState().setCalendarOpen(true)}>
 					{selectedDate.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}{" "}
@@ -56,26 +63,33 @@ export const MainPage = () => {
 				{error && <div className="notice-error" role="alert">{error}<button type="button" disabled={isLoading} onClick={() => void fetchMonthlyData(selectedDate.getMonth() + 1, selectedDate.getFullYear())}>Повторить загрузку</button></div>}
 				{isLoading && <p role="status">Загрузка тренировок…</p>}
 
-				<button type="button" className={styles.newExercise} onClick={() => setAddingExercise(true)}>
-					+ Добавить упражнение
+				<button type="button" className={styles.newExercise} onClick={() => setAddingWorkout(true)}>
+					+ Добавить тренировку
 				</button>
-				{addingExercise && <ExerciseModal onClose={() => setAddingExercise(false)} />}
+				{addingWorkout && <TrainingModal onClose={() => setAddingWorkout(false)} />}
+                {addingExercise && <ExerciseModal workoutId={addingExercise} onClose={() => setAddingExercise(null)} onAdded={() => {
+                    setAddingExercise(null);
+                    requestAnimationFrame(() => document.getElementById(`workout-${addingExercise}`)?.querySelector<HTMLInputElement>(`[data-first-weight] input, [data-duration] input`)?.focus());
+                }} />}
 
-				<section className={styles.workoutDisplay}>
-					<p className="save-hint">Вес и повторения сохраняются после Enter или перехода к следующему полю.</p>
-                    <h2>Тренировка · {selectedDate.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}</h2>
-					{!isLoading && !error && !currentWorkout?.exercises.length && (
+				<section className={styles.workoutDisplay} aria-label="Упражнения и подходы">
+
+
+					{!isLoading && !error && !dayWorkouts.length && (
 						<div className={styles.emptyState}>
-							<h3>Место для нового результата.</h3>
+							<h3>Пока нет тренировок</h3>
 							<p>
-								Нажми «Добавить упражнение» выше.
-								<br />
-								Подходы, вес и повторения появятся здесь.
+								Добавь тренировку и дай ей название, например «Грудь».
 							</p>
 						</div>
 					)}
 
-					<div className={styles.exercisesList}>
+					{dayWorkouts.map(currentWorkout => <section key={currentWorkout.id} id={`workout-${currentWorkout.id}`} className={styles.trainingCard}>
+                        <header className={styles.trainingHeader}><h2>{currentWorkout.name || "Тренировка"}</h2><div>
+                        {!currentWorkout.exercises.length && <button type="button" className={styles.deleteExBtn} aria-label={`Удалить пустую тренировку ${currentWorkout.name || "Тренировка"}`} onClick={() => void deleteEmptyWorkout(currentWorkout.id)}>×</button>}
+                        <button type="button" className={styles.trainingAdd} aria-label={`Добавить упражнение в тренировку ${currentWorkout.name || "Тренировка"}`} onClick={() => setAddingExercise(currentWorkout.id)}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button></div></header>
+                        {!currentWorkout.exercises.length && <p className={styles.trainingEmpty}>Нажми «+», чтобы добавить упражнение.</p>}
+                        <div className={styles.exercisesList}>
 						{[...(currentWorkout?.exercises || [])].reverse().map((ex) => {
 							return (
 								<div key={ex.id} className={`${styles.exCard} ${ex.isCompound ? styles.compound : ""}`}>
@@ -84,18 +98,16 @@ export const MainPage = () => {
 											<div className={styles.exTitleBtn}>
 												<h4>
 													{ex.name}
-													<span>{ex.category.name}</span>
+													{ex.category.name !== "Без группы" && <span>{ex.category.name}</span>}
 												</h4>
 											</div>
 										</div>
 
-										<p className={styles.exDescription}>{ex.description}</p>
-
-										<div className={styles.tags}>
-											{ex.isCompound ? "Многосуставное" : "Изоляция"}
-											{ex.isFailure && " · До отказа"}
-											{ex.isDropSet && " · Дроп-сет"}
-										</div>
+                                        {(ex.description || ex.isCompound || ex.isFailure || ex.isDropSet) && <details className={styles.exerciseDetails}>
+                                            <summary>Подробнее</summary>
+                                            {ex.description && <p className={styles.exDescription}>{ex.description}</p>}
+                                            <div className={styles.tags}>{[ex.isCompound && "Многосуставное", ex.isFailure && "До отказа", ex.isDropSet && "Дроп-сет"].filter(Boolean).join(" · ")}</div>
+                                        </details>}
 
 										<div
 											id={`sets-${ex.id}`}
@@ -106,17 +118,17 @@ export const MainPage = () => {
 										>
 											<div className={styles.setsClip}>
 												<div className={styles.setsContainer}>
-													<div className={styles.setsHeading}>
+													{ex.durationMinutes == null && <div className={styles.setsHeading}>
 														<span>Подход</span>
 														<span>Вес, кг</span>
 														<span>Повторения</span>
 														<span />
-													</div>
+													</div>}
 													<div className={styles.setsList}>
-														{ex.sets?.map((set) => (
+														{ex.durationMinutes != null ? <div className={styles.cardioMetrics}><label data-duration className={styles.durationField}>Длительность, мин<SetInput key={`duration-${ex.id}-${ex.durationMinutes}`} value={ex.durationMinutes} label={`Длительность: ${ex.name}`} integer min={1} max={1440} className={styles.setInput} save={value => updateDuration(ex.id, value)} /></label><label className={styles.durationField}>Расстояние, км<SetInput key={`distance-${ex.id}-${ex.distanceKm}`} value={ex.distanceKm ?? 0} label={`Расстояние: ${ex.name}`} min={0} max={1000} className={styles.setInput} save={value => updateDistance(ex.id,value)} /></label></div> : ex.sets?.map((set) => (
 															<div key={set.id} className={styles.setRow}>
 																<span className={styles.setNumber}>#{set.setNumber}</span>
-																<div className={styles.setInputs}>
+																<div className={styles.setInputs} data-first-weight={set.setNumber === 1 ? "" : undefined}>
 																	<SetInput
 																		key={`weight-${set.id}-${set.weight}`}
 																		value={set.weight}
@@ -152,7 +164,8 @@ export const MainPage = () => {
 														))}
 														{
 															<button
-																className={styles.addSetBtn}
+																hidden={ex.durationMinutes != null}
+                                                        className={styles.addSetBtn}
 																type="button"
 																disabled={isSaving || ex.sets.length >= 100}
 																onClick={() => void changeSets(ex.id, "add")}
@@ -205,9 +218,11 @@ export const MainPage = () => {
 							);
 						})}
 					</div>
+                    </section>)}
 				</section>
 			</main>
-			<Footer />
+            <Footer showDownload={false} />
+
 		</div>
 	);
 };

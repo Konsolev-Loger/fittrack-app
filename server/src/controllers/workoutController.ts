@@ -7,9 +7,6 @@ class WorkoutController {
  async getCategories(_req: Request, res: Response) {
   res.json(formatResponse(200, "Категории загружены", await workoutService.getAllCategories(res.locals.userId)));
  }
- async createCategory(req: Request, res: Response) {
-  res.status(201).json(formatResponse(201, "Категория добавлена", await workoutService.addCustomCategory(req.body.name, res.locals.userId)));
- }
  async addExercise(req: Request, res: Response) {
   res.status(201).json(formatResponse(201, "Упражнение добавлено", await workoutService.addExerciseToDay(res.locals.userId, req.body)));
  }

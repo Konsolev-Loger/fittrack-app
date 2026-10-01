@@ -1,45 +1,26 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useWorkoutStore, type ExerciseFormData } from "../../store/workoutStore";
 import styles from "./WorkoutFrom.module.css";
-export const WorkoutForm = ({ onAdded }: { onAdded?: () => void }) => {
- const { categories, addCategory, addExercise, isSaving } = useWorkoutStore();
- const [newCatName, setNewCatName] = useState("");
- const [showCatInput, setShowCatInput] = useState(false);
- const [addingCategory, setAddingCategory] = useState(false);
- const { register, handleSubmit, reset } = useForm<ExerciseFormData>({ defaultValues: {setsCount: 3, isCompound: false, isFailure: false, isDropSet: false} });
- const onAddCategory = async () => {
-  if (!newCatName.trim() || addingCategory) return;
-  setAddingCategory(true);
-  try { if (await addCategory(newCatName.trim())) { setNewCatName(""); setShowCatInput(false); } }
-  finally { setAddingCategory(false); }
- };
- const onSubmit = async (data: ExerciseFormData) => { if (await addExercise(data)) { reset(); onAdded?.(); } };
+export const WorkoutForm = ({ workoutId, onAdded }: { workoutId: string; onAdded?: () => void }) => {
+ const [timed, setTimed] = useState(false);
+ const [expanded, setExpanded] = useState(false);
+ const extraId = useId();
+ const { addExercise, isSaving } = useWorkoutStore();
+ const { register, handleSubmit, reset } = useForm<ExerciseFormData>({ defaultValues: {durationMinutes: 60, setsCount: 3, isCompound: false, isFailure: false, isDropSet: false} });
+ const onSubmit = async (data: ExerciseFormData) => { if (await addExercise({...data, workoutId, distanceKm: timed && Number.isFinite(data.distanceKm) ? data.distanceKm : undefined, durationMinutes: timed ? data.durationMinutes : undefined, isCompound: !timed && data.isCompound, isFailure: !timed && data.isFailure, isDropSet: !timed && data.isDropSet})) { onAdded?.(); if (!onAdded) reset(); } };
  return <div className={styles.formBlock}>
   <h3>Добавить упражнение</h3>
-  <Link className="category-shortcut" to="/profile#categories">Управление своими категориями ↗</Link>
-  <div className={styles.catManager}>
-   <button type="button" onClick={() => setShowCatInput(!showCatInput)}>{showCatInput ? "Закрыть" : "+ Своя категория"}</button>
-   {showCatInput && <div className={styles.inlineInput}>
-    <input aria-label="Название группы мышц" type="text" minLength={2} maxLength={30} value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="Группа мышц..." />
-    <button type="button" disabled={addingCategory || newCatName.trim().length < 2} onClick={() => void onAddCategory()}>Создать</button>
-   </div>}
-  </div>
+  <div className={styles.modeSwitch} role="group" aria-label="Способ записи"><button type="button" disabled={isSaving} aria-pressed={!timed} onClick={() => setTimed(false)}>Подходы</button><button type="button" disabled={isSaving} aria-pressed={timed} onClick={() => setTimed(true)}>Кардио</button></div>
   <form onSubmit={handleSubmit(onSubmit)} className={styles.mainForm}>
-   <label className={styles.fieldLabel}>Группа мышц<select disabled={isSaving} aria-label="Группа мышц" {...register("categoryId")} required>
-    <option value="">-- Выберите группу мышц --</option>
-    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-   </select></label>
-   <label className={styles.fieldLabel}>Название упражнения<input disabled={isSaving} aria-label="Название упражнения" type="text" {...register("name")} minLength={2} maxLength={150} placeholder="Например, жим лёжа" required /></label>
-   <label className={styles.fieldLabel}>Заметка <span className={styles.optional}>необязательно</span><textarea disabled={isSaving} aria-label="Описание упражнения" {...register("description")} maxLength={2000} placeholder="Техника, ощущения или рабочие подсказки" /></label>
-   <label className={styles.fieldLabel}>Количество подходов<input disabled={isSaving} type="number" aria-label="Количество подходов" {...register("setsCount", { valueAsNumber: true })} min={1} max={100} step={1} placeholder="Количество подходов" required className={styles.fullWidthInput} /></label>
-   <div className={styles.checkboxes}>
-    <label><input disabled={isSaving} type="checkbox" {...register("isCompound")} /> Многосуставное</label>
-    <label><input disabled={isSaving} type="checkbox" {...register("isFailure")} /> Отказной подход</label>
-    <label><input disabled={isSaving} type="checkbox" {...register("isDropSet")} /> Дроп-сет</label>
-   </div>
-   <button type="submit" disabled={isSaving} className={styles.submitBtn}>{isSaving ? "Сохранение…" : "Записать в текущий день"}</button>
+   <label className={styles.fieldLabel}>Название упражнения<input autoFocus disabled={isSaving} aria-label="Название упражнения" type="text" {...register("name")} minLength={2} maxLength={150} placeholder={timed ? "Например, бег или теннис" : "Например, жим лёжа"} required /></label>
+   {timed && <div className={styles.cardioFields}><label className={styles.fieldLabel}><span>Длительность, мин</span><input required disabled={isSaving} type="number" inputMode="numeric" min={1} max={1440} step={1} {...register("durationMinutes", {valueAsNumber:true})} /></label><label className={styles.fieldLabel}><span>Расстояние, км</span><input disabled={isSaving} type="number" inputMode="decimal" min={0} max={1000} step="any" placeholder="Например, 5" {...register("distanceKm",{valueAsNumber:true})} /></label></div>}
+   <div className={styles.additional}>
+   <button type="button" className={styles.extraToggle} aria-expanded={expanded} aria-controls={extraId} onClick={() => setExpanded(value => !value)}>Дополнительно <svg className={styles.extraArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>
+   <div id={extraId} className={styles.extraPanel} data-expanded={expanded} inert={!expanded} aria-hidden={!expanded}><div className={styles.extraContent}>
+   <label className={styles.fieldLabel}>Заметка<textarea disabled={isSaving} aria-label="Описание упражнения" {...register("description")} maxLength={2000} placeholder="Техника, ощущения или рабочие подсказки" /></label>
+   </div></div></div>
+   <button type="submit" disabled={isSaving} className={styles.submitBtn}>{isSaving ? "Сохранение…" : "Добавить"}</button>
   </form>
  </div>;
 };

@@ -3,3 +3,11 @@
 .optional{font-size:11px}
 .mainForm input,.mainForm select,.mainForm textarea{font-size:14px}
 .submitBtn{min-height:44px;font-size:14px}
+
+.additional{border-top:1px solid var(--line);padding-top:14px}.additional summary{cursor:pointer;color:var(--muted);font-size:13px;padding:8px 0}.additional[open] summary{margin-bottom:12px}.additional .checkboxes{margin-top:14px}
+
+.extraToggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 0;border:0;font-size:13px;color:var(--muted)}.extraToggle:hover{background:transparent}.extraPanel{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .28s ease,opacity .2s ease}.extraPanel[data-expanded=true]{grid-template-rows:1fr;opacity:1}.extraContent{min-height:0;overflow:hidden}.extraContent>.fieldLabel{padding-top:12px}
+
+.modeSwitch{display:flex;gap:8px;margin:16px 0}.modeSwitch button{flex:1;font-size:13px}.modeSwitch [aria-pressed=true]{background:var(--accent);color:var(--on-accent)}
+.cardioFields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.extraContent>.fieldLabel{margin-bottom:12px}.cardioFields .optional{font-size:10px}@media(max-width:380px){.cardioFields{grid-template-columns:1fr}}
+.extraArrow{display:block;flex-shrink:0;transition:transform .28s ease}.extraToggle[aria-expanded=true] .extraArrow{transform:rotate(180deg)}.cardioFields .fieldLabel{display:grid;grid-template-rows:1fr auto;align-items:end}.cardioFields input{height:46px}

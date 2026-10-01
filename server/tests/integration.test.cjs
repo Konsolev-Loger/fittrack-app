@@ -37,6 +37,11 @@ before(async () => {
    await admin.query('INSERT INTO "User" (id,email,password,"updatedAt") VALUES ($1,$2,$3,now())', ["legacy", "legacy@test.invalid", "unused"]);
    await admin.query('INSERT INTO "Workout" (id,date,"weekNumber",month,year,"userId","updatedAt") VALUES ($1,$2,1,9,2026,$3,now())', ["legacy-day", "2026-08-31 21:00:00", "legacy"]);
   }
+  if (name === "20260930000100_timed_activities") {
+   await admin.query(`INSERT INTO "Category" (id,name,"isCustom","userId") VALUES ('legacy-category','Old category',true,'legacy')`);
+   await admin.query(`INSERT INTO "Exercise" (id,name,"isCompound","categoryId","workoutId") VALUES ('legacy-exercise','Old exercise',true,'legacy-category','legacy-day')`);
+   await admin.query(`INSERT INTO "WorkoutSet" (id,"setNumber",weight,"repsCount","exerciseId","updatedAt") VALUES ('legacy-set',1,42.5,12,'legacy-exercise',now())`);
+  }
   await admin.query(fs.readFileSync(path.join(dir, name, "migration.sql"), "utf8"));
  }
  const url = new URL(process.env.DATABASE_URL);
@@ -85,6 +90,23 @@ test("migration chain preserves the Moscow calendar day and matches new schema",
  const columns = await admin.query("SELECT column_name FROM information_schema.columns WHERE table_schema=$1 AND table_name='Exercise'", [schema]);
  assert.equal(columns.rows.some(row => row.column_name === "repsCount"), false);
 });
+test("September update preserves existing users, workouts, exercises and sets", async () => {
+ const user = await prisma.user.findUnique({where:{id:"legacy"}});
+ assert.equal(user.email, "legacy@test.invalid");
+ assert.equal(user.password, "unused");
+ const workout = await prisma.workout.findUnique({where:{id:"legacy-day"},include:{exercises:{include:{sets:true,category:true}}}});
+ assert.equal(workout.userId, "legacy");
+ assert.equal(workout.name, null);
+ const exercise = workout.exercises.find(e => e.id === "legacy-exercise");
+ assert.equal(exercise.name, "Old exercise");
+ assert.equal(exercise.category.name, "Old category");
+ assert.equal(exercise.durationMinutes, null);
+ assert.equal(exercise.distanceKm, null);
+ assert.equal(exercise.sets[0].weight, 42.5);
+ assert.equal(exercise.sets[0].repsCount, 12);
+ assert.equal(exercise.sets[0].id, "legacy-set");
+});
+
 test("foreign category is rejected without creating a workout", async () => {
  const result = await request("/workout/exercises", { method: "POST", token: other.body.data.accessToken, body: exercise("2026-09-02") });
  assert.equal(result.status, 403);
@@ -153,21 +175,81 @@ test("set removal checks owner, renumbers and allows recovery after the final se
  assert.equal(result.status,201); assert.equal(result.body.data.sets.length,1); assert.equal(result.body.data.sets[0].setNumber,1);
 });
 
-test("custom categories rename and transfer safely; foreign and shared categories stay protected", async () => {
+test("custom category management is no longer exposed",async()=>{
+ const token=owner.body.data.accessToken;
+ assert.equal((await request("/workout/categories",{method:"POST",token,body:{name:"New"}})).status,404);
+ assert.equal((await request(`/workout/categories/${category.id}`,{method:"PATCH",token,body:{name:"Renamed"}})).status,404);
+ assert.equal((await request(`/workout/categories/${category.id}`,{method:"DELETE",token})).status,404);
+ assert.ok(await prisma.category.findUnique({where:{id:category.id}}));
+});
+
+test("personal notes persist and are private to their owner",async()=>{
+ const token=owner.body.data.accessToken, foreign=other.body.data.accessToken;
+ assert.equal((await request("/profile/notes")).status,401);
+ assert.equal((await request("/profile/notes",{method:"POST",token,body:{content:"  "}})).status,400);
+ assert.equal((await request("/profile/notes",{method:"POST",token,body:{content:"x".repeat(5001)}})).status,400);
+ const created=await request("/profile/notes",{method:"POST",token,body:{content:"  План на неделю\nТренироваться три раза  "}});
+ assert.equal(created.status,201);
+ const id=created.body.data.id;
+ assert.equal(created.body.data.content,"План на неделю\nТренироваться три раза");
+ assert.equal((await request("/profile/notes",{token})).body.data.some(note=>note.id===id),true);
+ assert.equal((await request("/profile/notes",{token:foreign})).body.data.some(note=>note.id===id),false);
+ for(const method of ["PATCH","DELETE"])assert.equal((await request(`/profile/notes/${id}`,{method,token:foreign,...(method==="PATCH"?{body:{content:"Hacked"}}:{})})).status,404);
+ const changed=await request(`/profile/notes/${id}`,{method:"PATCH",token,body:{content:"Новый план"}});assert.equal(changed.status,200);
+ assert.equal((await request("/profile/notes",{token})).body.data.find(note=>note.id===id).content,"Новый план");
+ assert.equal((await request(`/profile/notes/${id}`,{method:"DELETE",token})).status,200);
+ assert.equal((await request("/profile/notes",{token})).body.data.some(note=>note.id===id),false);
+});
+
+test("timed activities persist minutes, validate input and enforce ownership", async () => {
  const token = owner.body.data.accessToken;
- const cat = (await request("/workout/categories",{method:"POST",token,body:{name:"Опечатка"}})).body.data;
- const shared = await prisma.category.create({data:{name:"Общая группа"}});
- assert.equal((await request("/workout/categories/"+cat.id,{method:"PATCH",token:other.body.data.accessToken,body:{name:"Чужое"}})).status,404);
- assert.equal((await request("/workout/categories/"+shared.id,{method:"DELETE",token})).status,404);
- assert.equal((await request("/workout/categories/"+cat.id,{method:"PATCH",token,body:{name:"Исправлено"}})).status,200);
- const ex = (await request("/workout/exercises",{method:"POST",token,body:{...exercise("2026-09-13"),categoryId:cat.id}})).body.data;
- assert.equal((await request("/workout/categories/"+cat.id,{method:"DELETE",token})).status,409);
- const transferred = await request("/workout/categories/"+cat.id,{method:"DELETE",token,body:{replacementCategoryId:shared.id}});
- assert.equal(transferred.status,200);
- assert.equal((await prisma.exercise.findUnique({where:{id:ex.id}})).categoryId,shared.id);
- assert.equal(await prisma.workoutSet.count({where:{exerciseId:ex.id}}),1);
- const empty = (await request("/workout/categories",{method:"POST",token,body:{name:"Пустая"}})).body.data;
- assert.equal((await request("/workout/categories/"+empty.id,{method:"DELETE",token})).status,200);
+ const body = {name:"Теннис",isCompound:false,date:"2026-09-26",durationMinutes:60,sets:[]};
+ const created = await request("/workout/exercises",{method:"POST",token,body});
+ assert.equal(created.status,201);
+ const id = created.body.data.id;
+ assert.equal(created.body.data.durationMinutes,60);
+ assert.deepEqual(created.body.data.sets,[]);
+ assert.equal(created.body.data.category.name,"Кардио");
+ assert.equal((await request(`/workout/exercises/${id}/duration`,{method:"PATCH",token:other.body.data.accessToken,body:{durationMinutes:90}})).status,404);
+ for (const durationMinutes of [0,-1,1.5,1441]) {
+  assert.equal((await request(`/workout/exercises/${id}/duration`,{method:"PATCH",token,body:{durationMinutes}})).status,400);
+  assert.equal((await request('/workout/exercises',{method:"POST",token,body:{...body,durationMinutes}})).status,400);
+ }
+ assert.equal((await request(`/workout/exercises/${id}/sets`,{method:"POST",token})).status,400);
+ assert.equal((await request(`/workout/exercises/${id}/duration`,{method:"PATCH",token,body:{durationMinutes:75}})).status,200);
+ const calendar = await request('/workout/calendar?month=9&year=2026',{token});
+ assert.equal(calendar.body.data.find(day=>day.date==='2026-09-26').exercises.find(ex=>ex.id===id).durationMinutes,75);
+ assert.equal((await request('/workout/exercises',{method:"POST",token,body:{...body,sets:[{setNumber:1,weight:0,repsCount:0}]}})).status,400);
+ assert.equal((await request(`/workout/exercises/${id}`,{method:"DELETE",token})).status,200);
+});
+
+test("named workouts on the same day isolate exercises and retain empty sessions", async () => {
+ const token=owner.body.data.accessToken, date="2026-09-28";
+ const a=await request("/workout/sessions",{method:"POST",token,body:{name:"Грудь",date}});
+ const b=await request("/workout/sessions",{method:"POST",token,body:{name:"Бег",date}});
+ assert.equal(a.status,201);assert.equal(b.status,201);assert.notEqual(a.body.data.id,b.body.data.id);
+ const strength={name:"Жим лёжа",isCompound:false,date,workoutId:a.body.data.id,sets:[{setNumber:1,weight:0,repsCount:0}]};
+ assert.equal((await request("/workout/exercises",{method:"POST",token:other.body.data.accessToken,body:strength})).status,404);
+ assert.equal((await request("/workout/exercises",{method:"POST",token,body:{...strength,date:"2026-09-29"}})).status,404);
+ const ex=await request("/workout/exercises",{method:"POST",token,body:strength});assert.equal(ex.status,201);
+ const cardio={name:"Бег",isCompound:false,date,workoutId:b.body.data.id,durationMinutes:30,distanceKm:5.25,sets:[]};
+ const run=await request("/workout/exercises",{method:"POST",token,body:cardio});assert.equal(run.status,201);
+ assert.equal(run.body.data.distanceKm,5.25);
+ for(const distanceKm of [-1,1001]) assert.equal((await request("/workout/exercises",{method:"POST",token,body:{...cardio,distanceKm}})).status,400);
+ assert.equal((await request("/workout/exercises",{method:"POST",token,body:{...strength,distanceKm:1}})).status,400);
+ const endpoint=`/workout/exercises/${run.body.data.id}/duration`;
+ assert.equal((await request(endpoint,{method:"PATCH",token:other.body.data.accessToken,body:{distanceKm:99}})).status,404);
+ assert.equal((await request(endpoint,{method:"PATCH",token,body:{distanceKm:6.5}})).status,200);
+ let calendar=await request('/workout/calendar?month=9&year=2026',{token});
+ const sessions=calendar.body.data.filter(w=>w.date===date);assert.equal(sessions.length,2);
+ assert.equal(sessions.find(w=>w.id===b.body.data.id).exercises[0].distanceKm,6.5);
+ assert.equal(sessions.find(w=>w.id===a.body.data.id).exercises[0].name,"Жим лёжа");
+ assert.equal((await request(`/workout/sessions/${a.body.data.id}`,{method:"DELETE",token})).status,409);
+ await request(`/workout/exercises/${ex.body.data.id}`,{method:"DELETE",token});
+ calendar=await request('/workout/calendar?month=9&year=2026',{token});
+ assert.deepEqual(calendar.body.data.find(w=>w.id===a.body.data.id).exercises,[]);
+ assert.equal((await request(`/workout/sessions/${a.body.data.id}`,{method:"DELETE",token:other.body.data.accessToken})).status,409);
+ assert.equal((await request(`/workout/sessions/${a.body.data.id}`,{method:"DELETE",token})).status,200);
 });
 
 test("refresh restores user; logout revokes copied refresh and access tokens", async () => {
@@ -179,12 +261,17 @@ test("refresh restores user; logout revokes copied refresh and access tokens", a
  assert.equal((await request("/auth/refresh", { method: "POST", cookie })).status, 401);
  assert.equal((await request("/workout/categories", { token: other.body.data.accessToken })).status, 401);
 });
-test("registration rejects a missing special character with structured JSON", async () => {
- const result = await request("/auth/register", { method: "POST", body: { email: "invalid@test.invalid", password: "Password123" } });
- assert.equal(result.status, 400);
- assert.ok(Array.isArray(result.body.error));
- assert.equal(typeof result.body.error[0].message, "string");
+test("registration accepts passwords without symbols and stores only a bcrypt hash", async () => {
+ const result = await request("/auth/register", { method: "POST", body: { email: "simple@test.invalid", password: "Password123" } });
+ assert.equal(result.status, 201);
+ const user = await prisma.user.findUnique({where:{email:"simple@test.invalid"}});
+ assert.notEqual(user.password, "Password123");
+ assert.equal(await require("bcryptjs").compare("Password123", user.password), true);
+ const invalid = await request("/auth/register", {method:"POST",body:{email:"short@test.invalid",password:"abc"}});
+ assert.equal(invalid.status,400);
+ assert.ok(Array.isArray(invalid.body.error));
 });
+
 test("security headers, origin checks, body limits and CORS preflight", async () => {
  const health = await fetch(base.replace("/api", "") + "/healthz");
  assert.equal(health.status, 200);

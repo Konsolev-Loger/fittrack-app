@@ -114,3 +114,22 @@ test("registration without email confirmation opens an authenticated session", a
  assert.equal(auth.getState().accessToken,"session-token");
  auth.getState().resetAuth();
 });
+
+test("calendar search matches words inside custom names, categories, case and ё", async () => {
+ const { matchesWorkoutSearch: match } = await server.ssrLoadModule("/src/utils/search.ts");
+ assert.equal(match(" ноги ", "Куриные НОГИ", "Другое"), true);
+ assert.equal(match("ноги", "Приседания", "Ноги"), true);
+ assert.equal(match("жим лежа", "Жим лёжа", "Грудь"), true);
+ assert.equal(match("ноги", "Теннис", "Кардио и спорт"), false);
+ assert.equal(match("", "Теннис", "Кардио и спорт"), true);
+});
+
+test("collapsed exercise preferences survive reload and are isolated per user",async()=>{
+ const {readCollapsedExercises:read,saveCollapsedExercises:save}=await server.ssrLoadModule("/src/utils/collapsedExercises.ts");
+ save("alice",["exercise-one"]);
+ assert.deepEqual(read("alice"),["exercise-one"]);
+ assert.deepEqual(read("bob"),[]);
+ save("alice",[]);assert.deepEqual(read("alice"),[]);
+ values.set("collapsed-exercises:bob","broken JSON");assert.deepEqual(read("bob"),[]);
+ values.set("collapsed-exercises:bob",JSON.stringify(["valid",42,null]));assert.deepEqual(read("bob"),["valid"]);
+});

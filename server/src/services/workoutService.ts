@@ -2,7 +2,6 @@ import { workoutRepository } from "../repositories/workoutRepository";
 import { createExerciseSchema, updateSetSchema } from "../validation/workout.validation";
 class WorkoutService {
  getAllCategories(userId: string) { return workoutRepository.getCategories(userId); }
- addCustomCategory(name: string, userId: string) { return workoutRepository.createCategory(name, userId); }
  addExerciseToDay(userId: string, data: unknown) { return workoutRepository.createExerciseForDay(userId, createExerciseSchema.parse(data)); }
  async getMonthlyCalendar(userId: string, month: number, year: number) {
   const workouts = await workoutRepository.getWorkoutWithExercises(userId, month, year);

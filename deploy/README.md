@@ -44,7 +44,9 @@ the new images, change only `SETLY_TAG` in `.env` to the new `RELEASE_TAG`, then
 `bash deploy/start.sh`. It backs up the database before applying migrations. Do not
 overwrite secrets with new ones: changing POSTGRES_PASSWORD in `.env` does not change
 the password stored inside an existing database. Keep the previous release's images.
-Schema changes must remain compatible with the old API while migration runs.
+The script stops the API before its backup and migrations, causing a brief outage.
+If backup or migration fails, it leaves the API stopped: inspect the error before
+continuing; do not restart an old API against a partially migrated schema.
 Do not automatically roll back a migrated database; plan and test a restore if needed.
 
 Never run `docker compose down -v`: it deletes database and certificate volumes.

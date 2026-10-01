@@ -18,8 +18,8 @@ function App() {
   <Route path="/profile" element={isAuthenticated ? <ProfilePage/> : <Navigate to="/login" replace/>}/>
   <Route path="/download" element={<DownloadPage/>}/>
   <Route path="/diary" element={isAuthenticated ? <MainPages/> : <Navigate to="/login" replace/>}/>
-  <Route path="/login" element={isAuthenticated ? <Navigate to="/diary" replace/> : <><Landing/><AuthDialog mode="login"/></>}/>
-  <Route path="/register" element={isAuthenticated ? <Navigate to="/diary" replace/> : <><Landing/><AuthDialog mode="register"/></>}/>
+  <Route path="/login" element={<><Landing/><AuthDialog mode="login"/></>}/>
+  <Route path="/register" element={<><Landing/><AuthDialog mode="register"/></>}/>
   <Route path="*" element={<Navigate to="/" replace/>}/>
  </Routes></BrowserRouter>;
 }

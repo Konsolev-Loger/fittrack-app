@@ -10,7 +10,7 @@ export function WeekStrip() {
  monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
  const days = Array.from({ length: 7 }, (_, index) => new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index));
  const weekKey = dateKey(monday);
- const workoutDays = monthlyWorkouts.filter(day => day.exercises.length > 0).map(day => day.date).join(",");
+ const workoutDays = monthlyWorkouts.map(day => day.date).join(",");
 const [marked, setMarked] = useState<{week: string; dates: string[]}>({week:"",dates:[]});
 const [markerError, setMarkerError] = useState(false);
 useEffect(() => {
@@ -19,7 +19,7 @@ useEffect(() => {
  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
  const months = start.getMonth() === end.getMonth() ? [start] : [start, end];
  Promise.all(months.map(date => axiosInstance.get<{data: {date: string; exercises: unknown[]}[]}>("/workout/calendar", {params:{month:date.getMonth()+1,year:date.getFullYear()}})))
-  .then(results => { if (active) { setMarked({week:weekKey,dates:results.flatMap(result => result.data.data.filter(day => day.exercises.length > 0).map(day => day.date))}); setMarkerError(false); } })
+  .then(results => { if (active) { setMarked({week:weekKey,dates:results.flatMap(result => result.data.data.map(day => day.date))}); setMarkerError(false); } })
   .catch(() => { if (active) setMarkerError(true); });
  return () => { active = false; };
 }, [weekKey, workoutDays]);
